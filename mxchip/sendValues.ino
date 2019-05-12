@@ -1,11 +1,10 @@
 #include "AZ3166WiFi.h"
-#include "IoT_DevKit_HW.h"
+#include "Arduino.h"
 #include "http_client.h"
 #include "Sensor.h"
 #include "SystemTickCounter.h"
+#include "RGB_LED.h"
 
-char ssid[] = "SSID";    //  your network SSID (name)
-char pass[] = "PASSWORD"; // your network password
 int status = WL_IDLE_STATUS;
 static char buffInfo[128];
 static RGB_LED rgbLed;
@@ -15,24 +14,27 @@ static volatile uint64_t msReadEnvData = 0;
 #define READ_ENV_INTERVAL 10000
 static HTS221Sensor *ht_sensor;
 static DevI2C *ext_i2c;
+static bool hasWifi = false;
 
 void setup()
 {
+    Serial.begin(115200);
     Screen.init();
     initSensors();
     Screen.print(0, "HOME \r\n Welcome");
 
     delay(1000);
-    InitWiFi();
+    initWiFi();
     delay(3000);
 }
 
-void InitWiFi()
+void initWiFi()
 {
-    if (WiFi.begin(ssid, pass) == WL_CONNECTED)
+    if (WiFi.begin() == WL_CONNECTED)
     {
         IPAddress ip = WiFi.localIP();
         Screen.print(1, ip.get_address());
+        hasWifi = true;
     }
     else
     {
@@ -60,30 +62,63 @@ void initSensors()
     ht_sensor->reset();
 }
 
-void loop()
+float readTemperature()
 {
-    uint64_t ms = SystemTickCounterRead() - msReadEnvData;
-    if (ms < READ_ENV_INTERVAL)
-    {
-        return;
-    }
-    float temp = 0;
-    ht_sensor->getTemperature(&temp);
+    ht_sensor->reset();
+
+    float temperature = 0;
+    ht_sensor->getTemperature(&temperature);
+
+    return temperature;
+}
+
+float readHumidity()
+{
+    ht_sensor->reset();
+
     float humidity = 0;
     ht_sensor->getHumidity(&humidity);
 
-    snprintf(buffInfo, sizeof(buffInfo), "Leicester\r\n temp: %.2f \n humidity: %.2f", temp, humidity);
-    textOutDevKitScreen(0, buffInfo, 1);
-    msReadEnvData = SystemTickCounterRead();
+    return humidity;
+}
 
-    // switch on rgb led while posting data
-    rgbLed.setColor(185, 24, 23);
+void loop()
+{
+    if (hasWifi)
+    {
+        uint64_t ms = SystemTickCounterRead() - msReadEnvData;
+        if (ms < READ_ENV_INTERVAL)
+        {
+            return;
+        }
+        float temperature = readTemperature();
+        float humidity = readHumidity();
 
-    // POST sensor data
-    sendData(temp, humidity);
+        displayLines("Leicester", "Temp:" + String(temperature), "Hum: " + String(humidity));
+        msReadEnvData = SystemTickCounterRead();
 
-    // turn off rgb led
-    rgbLed.turnOff();
+        // switch on rgb led while posting data
+        rgbLed.setColor(185, 24, 23);
+
+        // POST sensor data
+        sendData(temperature, humidity);
+
+        // turn off rgb led
+        rgbLed.turnOff();
+    }
+}
+
+void displayLines(String line1, String line2, String line3)
+{
+    char screenBuff[128];
+    line1.toCharArray(screenBuff, 128);
+    Screen.print(0, screenBuff);
+
+    line2.toCharArray(screenBuff, 128);
+    Screen.print(1, screenBuff);
+
+    line3.toCharArray(screenBuff, 128);
+    Screen.print(2, screenBuff);
 }
 
 void sendData(float temp, float humidity)
@@ -93,6 +128,8 @@ void sendData(float temp, float humidity)
 
 const Http_Response *httpRequest(http_method method, String url, String body)
 {
+    Screen.print(3, "Sending Data");
+
     char urlBuf[128];
     url.toCharArray(urlBuf, 128);
 
@@ -100,7 +137,7 @@ const Http_Response *httpRequest(http_method method, String url, String body)
     httpClient->set_header("Content-Type", "application/json"); // required for posting data in the body
 
     char bodyBuf[256];
-    url.toCharArray(bodyBuf, 256);
+    body.toCharArray(bodyBuf, 256);
     const Http_Response *result = httpClient->send(bodyBuf, strlen(bodyBuf));
 
     if (result == NULL)
@@ -110,5 +147,16 @@ const Http_Response *httpRequest(http_method method, String url, String body)
         String(httpClient->get_error()).toCharArray(errorBuf, 10);
         Screen.print(1, errorBuf);
     }
+
+    Screen.print(3, "Success");
+
+    String(result->body).toCharArray(buffInfo, 128);
+    Screen.print(3, buffInfo);
+
+    Serial.print(result->status_code);
+    Serial.print(result->status_message);
+
+    delete httpClient;
+
     return result;
 }

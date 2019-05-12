@@ -11,7 +11,7 @@ static RGB_LED rgbLed;
 int INTERVAL = 5000;
 int send_interval_ms = 0;
 static volatile uint64_t msReadEnvData = 0;
-#define READ_ENV_INTERVAL 30000
+#define READ_ENV_INTERVAL 120000
 static HTS221Sensor *ht_sensor;
 static DevI2C *ext_i2c;
 static bool hasWifi = false;
@@ -123,7 +123,7 @@ void displayLines(String line1, String line2, String line3)
 
 void sendData(float temp, float humidity)
 {
-    httpRequest(HTTP_POST, "http://192.168.0.77:3000/", "{location:\"Leicester\",humidity:\"" + String(humidity) + "\",temperature:\"" + String(temp) + "\"}");
+    httpRequest(HTTP_POST, "http://192.168.0.77:3000/", "{\"location\":\"Leicester\",\"humidity\":\"" + String(humidity) + "\",\"temperature\":\"" + String(temp) + "\"}");
 }
 
 const Http_Response *httpRequest(http_method method, String url, String body)

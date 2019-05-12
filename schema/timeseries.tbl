@@ -1,0 +1,11 @@
+create table TimeSeries
+(
+	id integer
+		constraint TimeSeries_pk
+			primary key autoincrement,
+	temperature numeric,
+	humidity numeric,
+	date text,
+	location text
+);
+

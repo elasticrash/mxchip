@@ -11,7 +11,7 @@ static RGB_LED rgbLed;
 int INTERVAL = 5000;
 int send_interval_ms = 0;
 static volatile uint64_t msReadEnvData = 0;
-#define READ_ENV_INTERVAL 10000
+#define READ_ENV_INTERVAL 30000
 static HTS221Sensor *ht_sensor;
 static DevI2C *ext_i2c;
 static bool hasWifi = false;
@@ -123,15 +123,15 @@ void displayLines(String line1, String line2, String line3)
 
 void sendData(float temp, float humidity)
 {
-    httpRequest(HTTP_POST, "http://192.168.0.77:3000", "{location:\"Leicester\",humidity:\"" + String(humidity) + "\",temperature:\"" + String(temp) + "\"}");
+    httpRequest(HTTP_POST, "http://192.168.0.77:3000/", "{location:\"Leicester\",humidity:\"" + String(humidity) + "\",temperature:\"" + String(temp) + "\"}");
 }
 
 const Http_Response *httpRequest(http_method method, String url, String body)
 {
     Screen.print(3, "Sending Data");
 
-    char urlBuf[128];
-    url.toCharArray(urlBuf, 128);
+    char urlBuf[48];
+    url.toCharArray(urlBuf, 48);
 
     HTTPClient *httpClient = new HTTPClient(method, urlBuf);
     httpClient->set_header("Content-Type", "application/json"); // required for posting data in the body
@@ -146,6 +146,7 @@ const Http_Response *httpRequest(http_method method, String url, String body)
         char errorBuf[10];
         String(httpClient->get_error()).toCharArray(errorBuf, 10);
         Screen.print(1, errorBuf);
+        return result;
     }
 
     Screen.print(3, "Success");

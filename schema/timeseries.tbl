@@ -6,6 +6,7 @@ create table TimeSeries
 	temperature numeric,
 	humidity numeric,
 	date text,
-	location text
+	location text,
+	timestamp numeric
 );
 

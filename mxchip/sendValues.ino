@@ -87,9 +87,9 @@ void loop()
 {
     if (hasWifi)
     {
+        uint64_t ms = SystemTickCounterRead() - msReadEnvData;
         if (begin != 0)
         {
-            uint64_t ms = SystemTickCounterRead() - msReadEnvData;
             if (ms < READ_ENV_INTERVAL)
             {
                 return;
@@ -100,7 +100,6 @@ void loop()
         float humidity = readHumidity();
 
         displayLines("Leicester", "Temp:" + String(temperature), "Hum: " + String(humidity));
-        msReadEnvData = SystemTickCounterRead();
 
         // switch on rgb led while posting data
         rgbLed.setColor(185, 24, 23);

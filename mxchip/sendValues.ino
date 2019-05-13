@@ -100,7 +100,8 @@ void loop()
         float humidity = readHumidity();
 
         displayLines("Leicester", "Temp:" + String(temperature), "Hum: " + String(humidity));
-
+        msReadEnvData = SystemTickCounterRead();	
+        
         // switch on rgb led while posting data
         rgbLed.setColor(185, 24, 23);
 

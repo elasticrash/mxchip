@@ -18,7 +18,7 @@ http.createServer((req: any, res: any) => {
             try {
                 db.serialize(() => {
                     const data = JSON.parse(body);
-                    db.run("INSERT INTO TimeSeries (temperature, humidity, date, location) VALUES (?, ? ,?, ?, ?)", [
+                    db.run("INSERT INTO TimeSeries (temperature, humidity, date, location, timestamp) VALUES (?, ? ,?, ?, ?)", [
                         data.temperature,
                         data.humidity,
                         new Date().toUTCString(),

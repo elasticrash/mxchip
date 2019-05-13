@@ -15,6 +15,7 @@ static volatile uint64_t msReadEnvData = 0;
 static HTS221Sensor *ht_sensor;
 static DevI2C *ext_i2c;
 static bool hasWifi = false;
+static int begin = 0;
 
 void setup()
 {
@@ -86,25 +87,32 @@ void loop()
 {
     if (hasWifi)
     {
-        uint64_t ms = SystemTickCounterRead() - msReadEnvData;
-        if (ms < READ_ENV_INTERVAL)
+        if (begin != 0)
         {
-            return;
+            uint64_t ms = SystemTickCounterRead() - msReadEnvData;
+            if (ms < READ_ENV_INTERVAL)
+            {
+                return;
+            }
         }
-        float temperature = readTemperature();
-        float humidity = readHumidity();
+        else
+        {
+            begin = 1;
+            float temperature = readTemperature();
+            float humidity = readHumidity();
 
-        displayLines("Leicester", "Temp:" + String(temperature), "Hum: " + String(humidity));
-        msReadEnvData = SystemTickCounterRead();
+            displayLines("Leicester", "Temp:" + String(temperature), "Hum: " + String(humidity));
+            msReadEnvData = SystemTickCounterRead();
 
-        // switch on rgb led while posting data
-        rgbLed.setColor(185, 24, 23);
+            // switch on rgb led while posting data
+            rgbLed.setColor(185, 24, 23);
 
-        // POST sensor data
-        sendData(temperature, humidity);
+            // POST sensor data
+            sendData(temperature, humidity);
 
-        // turn off rgb led
-        rgbLed.turnOff();
+            // turn off rgb led
+            rgbLed.turnOff();
+        }
     }
 }
 

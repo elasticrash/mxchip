@@ -95,24 +95,21 @@ void loop()
                 return;
             }
         }
-        else
-        {
-            begin = 1;
-            float temperature = readTemperature();
-            float humidity = readHumidity();
+        begin = 1;
+        float temperature = readTemperature();
+        float humidity = readHumidity();
 
-            displayLines("Leicester", "Temp:" + String(temperature), "Hum: " + String(humidity));
-            msReadEnvData = SystemTickCounterRead();
+        displayLines("Leicester", "Temp:" + String(temperature), "Hum: " + String(humidity));
+        msReadEnvData = SystemTickCounterRead();
 
-            // switch on rgb led while posting data
-            rgbLed.setColor(185, 24, 23);
+        // switch on rgb led while posting data
+        rgbLed.setColor(185, 24, 23);
 
-            // POST sensor data
-            sendData(temperature, humidity);
+        // POST sensor data
+        sendData(temperature, humidity);
 
-            // turn off rgb led
-            rgbLed.turnOff();
-        }
+        // turn off rgb led
+        rgbLed.turnOff();
     }
 }
 

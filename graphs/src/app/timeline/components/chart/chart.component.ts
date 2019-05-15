@@ -24,12 +24,7 @@ export class ChartComponent implements OnInit {
   public tooltipDisabled = false;
   public showYAxisLabel = true;
   public showGridLines = true;
-  public innerPadding = '10%';
-  public barPadding = 8;
-  public groupPadding = 16;
   public roundDomains = false;
-  public maxRadius = 10;
-  public minRadius = 3;
   public showSeriesOnHover = true;
   public roundEdges = true;
   public animations = true;

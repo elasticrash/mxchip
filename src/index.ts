@@ -9,6 +9,15 @@ const port = 3000;
 var db = new sqlite.Database('./timedb.sqlite');
 
 http.createServer((req: any, res: any) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Request-Method', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST');
+    res.setHeader('Access-Control-Allow-Headers', '*');
+    if (req.method === 'OPTIONS') {
+        res.writeHead(200);
+        res.end();
+        return;
+    }
     if (req.method === 'POST') {
         let body = '';
         req.on('data', (chunk: any) => {
@@ -35,8 +44,15 @@ http.createServer((req: any, res: any) => {
         });
     } else if (req.method === 'GET') {
         const search_params = new URLSearchParams(req.url.split('?')[1]);
-        const from = search_params.get('from');
-        const to = search_params.get('to');
+        let from: any = search_params.get('from');
+        let to: any = search_params.get('to');
+        const now: Date = new Date as unknown as Date;
+        if (to === null) {
+            to = (now as unknown as number) / 1000 | 0;
+        }
+        if (from === null) {
+            from = now.setHours(now.getHours() - 24) / 1000 | 0;
+        }
         db.serialize(() => {
             db.all("SELECT * FROM TimeSeries WHERE timestamp > ? AND timestamp < ?", [from, to], (err, rows) => {
                 res.end(JSON.stringify(rows));

@@ -1,17 +1,18 @@
+import { Resource } from './resource';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
-import { Resource } from './resource';
 
-@Injectable()
-export class Rest<T> {
+@Injectable({
+    providedIn: 'root'
+})
+export class RestService<T> {
     protected _resource: Resource;
     protected _httpClient: HttpClient;
 
     constructor(
         resource: Resource,
         httpClient: HttpClient
-
     ) {
         this._resource = resource;
         this._httpClient = httpClient;
